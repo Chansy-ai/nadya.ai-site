@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Делегировать или научиться</title>
+<meta name="description" content="Игра для экспертов: как быстрее получить клиентов на консультации и курсы">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600&display=swap">
+<style>
+/* Layout: a game screen - path map with 7 levels + XP counter on top, one question card below, a card-flip reveal with a reward at the end.
+   Deliberately single dark look: forest green ground, wine for actions, brass for rewards. */
+:root{
+  --bg:#0e2019;
+  --bg-2:#14301f;
+  --panel:#183726;
+  --panel-2:#1f4430;
+  --line:#2d5540;
+  --cream:#f4ede0;
+  --muted:#b3c3b6;
+  --wine:#8f2442;
+  --wine-hi:#bb3d60;
+  --brass:#d8ad5b;
+  --leaf:#78c79c;
+  --display:"Unbounded", "Arial Black", Arial, sans-serif;
+  --body:"Golos Text", "Segoe UI", Roboto, Arial, sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{
+  background:
+    radial-gradient(900px 500px at 85% -10%, rgba(143,36,66,.35), transparent 60%),
+    radial-gradient(700px 500px at -10% 110%, rgba(120,199,156,.14), transparent 60%),
+    var(--bg);
+  color:var(--cream);font-family:var(--body);font-size:16px;line-height:1.55;
+  padding-inline:16px;padding-block:24px 48px;min-height:100vh;
+}
+.wrap{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.top b{color:var(--cream);font-weight:600}
+.xp{font-family:var(--display);font-size:13px;letter-spacing:.02em;text-transform:none;color:var(--brass);background:rgba(216,173,91,.1);border:1px solid rgba(216,173,91,.35);padding:6px 12px;border-radius:999px;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* path map */
+.map{display:flex;align-items:center;gap:0;padding:4px 2px}
+.node{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:700 12px var(--display);background:var(--panel);border:2px solid var(--line);color:var(--muted);transition:all .3s ease}
+.node.done{background:var(--leaf);border-color:var(--leaf);color:var(--bg)}
+.node.now{background:var(--wine);border-color:var(--wine-hi);color:var(--cream);box-shadow:0 0 0 5px rgba(187,61,96,.25);transform:scale(1.12)}
+.node.chest{width:36px;height:36px;border-radius:10px;background:rgba(216,173,91,.12);border-color:var(--brass);color:var(--brass)}
+.node.chest.open{background:var(--brass);color:var(--bg)}
+.link{flex:1;height:3px;background:var(--line);border-radius:2px;min-width:6px}
+.link.done{background:var(--leaf)}
+
+.card{background:linear-gradient(180deg,var(--panel),var(--bg-2));border:1px solid var(--line);border-radius:22px;padding:30px 26px;display:flex;flex-direction:column;gap:20px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+@media (max-width:480px){.card{padding:24px 18px}}
+h1,h2,h3{font-family:var(--display);font-weight:500;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:clamp(23px,5.4vw,32px);line-height:1.28}
+h1 em{font-style:normal;color:var(--brass)}
+h2{font-size:clamp(18px,4.2vw,22px);line-height:1.38}
+h3{font-family:var(--body);font-size:17px;font-weight:600;line-height:1.4}
+p{margin:0;max-width:62ch}
+.lead{color:var(--muted);font-size:17px}
+.eyebrow{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--brass);font-weight:600}
+
+.rules{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.rule{background:rgba(0,0,0,.2);border:1px solid var(--line);border-radius:14px;padding:14px 12px;display:flex;flex-direction:column;gap:4px}
+.rule b{font-family:var(--display);font-size:20px;color:var(--cream);font-variant-numeric:tabular-nums}
+.rule span{font-size:13px;color:var(--muted);line-height:1.35}
+@media (max-width:420px){.rules{grid-template-columns:1fr}.rule{flex-direction:row;align-items:baseline;gap:10px}}
+
+.btn{appearance:none;border:0;cursor:pointer;font:600 16px/1.2 var(--body);letter-spacing:.01em;padding:17px 22px;text-align:center;border-radius:14px;background:var(--wine);color:var(--cream);text-decoration:none;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 6px 0 #5a1529;transition:transform .12s ease, box-shadow .12s ease, background .15s}
+.btn:hover{background:var(--wine-hi)}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #5a1529}
+.btn.brass{background:var(--brass);color:var(--bg);box-shadow:0 6px 0 #9c7a35}
+.btn.brass:hover{background:#e6bd6c}
+.ghost{appearance:none;background:none;border:0;color:var(--muted);font:500 14px var(--body);cursor:pointer;padding:6px 0;align-self:flex-start}
+.ghost:hover{color:var(--cream)}
+:focus-visible{outline:3px solid var(--brass);outline-offset:3px}
+
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.lvl{font:700 12px var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--leaf)}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{appearance:none;text-align:left;font:500 16px/1.45 var(--body);color:var(--cream);background:rgba(0,0,0,.22);border:1.5px solid var(--line);border-radius:14px;padding:16px;cursor:pointer;display:flex;gap:14px;align-items:center;transition:border-color .15s, background .15s, transform .15s}
+.opt:hover{border-color:var(--leaf);background:rgba(120,199,156,.08);transform:translateX(3px)}
+.opt .key{flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font:700 13px var(--display);background:var(--panel-2);color:var(--muted)}
+.opt.picked{border-color:var(--brass);background:rgba(216,173,91,.12)}
+.opt.picked .key{background:var(--brass);color:var(--bg)}
+.opt:disabled{cursor:default}
+
+/* toast */
+.toast{position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top,0px));transform:translate(-50%,-140%);background:var(--brass);color:var(--bg);font:700 14px var(--display);padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:transform .35s cubic-bezier(.2,1.4,.4,1);z-index:10;white-space:nowrap}
+.toast{visibility:hidden}
+.toast.show{transform:translate(-50%,0);visibility:visible}
+
+/* loader */
+.load{display:flex;flex-direction:column;gap:18px;align-items:center;text-align:center;padding-block:30px}
+.spin{width:64px;height:64px;border-radius:16px;border:3px solid var(--brass);display:grid;place-items:center;font:700 22px var(--display);color:var(--brass);animation:wob 1s ease-in-out infinite}
+@keyframes wob{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg) scale(1.08)}}
+.loadbar{width:100%;max-width:280px;height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.loadbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--leaf),var(--brass));animation:fill 1.6s ease forwards}
+@keyframes fill{to{width:100%}}
+
+/* result */
+.flip{perspective:1200px}
+.flip-in{position:relative;transform-style:preserve-3d;transition:transform .8s cubic-bezier(.3,1.3,.5,1)}
+.flip.on .flip-in{transform:rotateY(180deg)}
+.face{backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:20px}
+.back-face{position:absolute;inset:0;background:repeating-linear-gradient(45deg,var(--wine) 0 14px,#7c1f39 14px 28px);border:2px solid var(--brass);display:grid;place-items:center;font:700 44px var(--display);color:var(--brass)}
+.front-face{transform:rotateY(180deg);background:linear-gradient(160deg,var(--panel-2),var(--bg-2));border:2px solid var(--brass);padding:26px 22px;display:flex;flex-direction:column;gap:14px}
+.arch-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.badge{flex:none;width:58px;height:58px;border-radius:16px;background:var(--brass);color:var(--bg);display:grid;place-items:center;font:700 24px var(--display)}
+.stats{display:flex;flex-direction:column;gap:9px}
+.stat{display:grid;grid-template-columns:128px 1fr 42px;gap:10px;align-items:center;font-size:14px;color:var(--muted)}
+.stat .bar{height:8px;background:rgba(0,0,0,.3);border-radius:99px;overflow:hidden}
+.stat .bar i{display:block;height:100%;width:0;background:var(--leaf);border-radius:99px;transition:width 1s ease .9s}
+.stat.win{color:var(--cream);font-weight:600}
+.stat.win .bar i{background:var(--brass)}
+.stat span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+
+.reward{border:1.5px dashed var(--brass);border-radius:18px;padding:22px 20px;display:flex;flex-direction:column;gap:14px;background:rgba(216,173,91,.06)}
+.reward ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.reward li{display:flex;justify-content:space-between;gap:16px;align-items:baseline;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.reward li:last-child{border-bottom:0;padding-bottom:0}
+.reward li span{white-space:nowrap;color:var(--brass);font-weight:500;font-variant-numeric:tabular-nums}
+.price{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.price strong{font:700 34px var(--display);color:var(--brass)}
+.price s{color:var(--muted)}
+.chip{font-size:12px;padding:5px 10px;border-radius:999px;background:var(--wine);color:var(--cream);font-weight:600}
+.code{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:rgba(0,0,0,.25);border-radius:14px;padding:14px 16px}
+.code-word{font:500 20px var(--display);color:var(--cream);letter-spacing:.05em;user-select:all;overflow-wrap:anywhere}
+.copy{appearance:none;border:1.5px solid var(--brass);background:transparent;color:var(--brass);font:600 14px var(--body);padding:10px 14px;border-radius:10px;cursor:pointer}
+.small{font-size:14px;color:var(--muted)}
+.small b{color:var(--cream);font-weight:500;user-select:all}
+.meta-case{border-top:1px solid var(--line);padding-top:18px;display:flex;flex-direction:column;gap:10px}
+.ghostbtn{background:transparent;border:1.5px solid var(--brass);color:var(--brass);box-shadow:none}
+.ghostbtn:hover{background:rgba(216,173,91,.12)}
+.ghostbtn:active{transform:none;box-shadow:none}
+.gamecta{background:linear-gradient(150deg,var(--wine),#5e1830);border:1.5px solid var(--brass);border-radius:20px;padding:22px 20px;display:flex;flex-direction:column;gap:12px}
+.gamecta .eyebrow{color:var(--brass)}
+.gamecta h2{color:var(--cream)}
+.gamecta p{color:#ecdcd8;font-size:15px}
+.gamecta .btn{align-self:stretch}
+.showcase{display:flex;flex-direction:column;gap:16px;padding-top:6px}
+.niches{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:520px){.niches{grid-template-columns:1fr}}
+.niche{background:rgba(0,0,0,.25);border:1px solid rgba(216,173,91,.35);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.niche .who-n{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--brass);font-weight:600}
+.niche .game{color:var(--cream);font-weight:500;line-height:1.4}
+.niche .lead-to{font-size:14px;color:#dcc9c5;line-height:1.45}
+.gives{display:flex;flex-wrap:wrap;gap:8px}
+.gives span{font-size:13px;padding:6px 11px;border-radius:999px;background:rgba(0,0,0,.25);color:var(--cream)}
+.introlink{appearance:none;background:rgba(216,173,91,.08);border:1px dashed var(--brass);color:var(--cream);font:500 15px/1.45 var(--body);text-align:left;padding:14px 16px;border-radius:14px;cursor:pointer}
+.introlink b{color:var(--brass);font-weight:600}
+
+.host{display:flex;gap:14px;align-items:center}
+.ava{flex:none;width:68px;height:68px;border-radius:50%;object-fit:cover;object-position:center 20%;border:2px solid var(--brass);box-shadow:0 0 0 4px rgba(216,173,91,.15)}
+.ava.sm{width:30px;height:30px;border-width:1.5px;box-shadow:none}
+.bubble{min-width:0;background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:16px 16px 16px 4px;padding:11px 14px;font-size:14px;line-height:1.45;color:var(--cream)}
+.bubble b{color:var(--brass);font-weight:600}
+.who{display:flex;align-items:center;gap:10px}
+.steps{display:flex;flex-direction:column;gap:10px}
+.stepline{display:flex;gap:10px;align-items:center;font-size:15px;color:var(--cream)}
+.stepline .num{flex:none;width:26px;height:26px;border-radius:50%;background:var(--brass);color:var(--bg);display:grid;place-items:center;font:700 12px var(--display)}
+.backbtn{appearance:none;align-self:flex-start;background:transparent;border:1.5px solid var(--line);color:var(--cream);font:500 14px var(--body);padding:11px 16px;border-radius:12px;cursor:pointer}
+.backbtn:hover{border-color:var(--leaf)}
+.how{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px}
+.how li{padding-left:4px}
+.how li::marker{color:var(--brass);font-weight:700}
+.more{border-top:1px solid var(--line);padding-top:18px;display:flex;flex-direction:column;gap:14px}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:9}
+.screen{animation:in .4s ease both}
+@keyframes in{from{opacity:.3;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  .screen,.spin{animation:none}.flip-in,.stat .bar i,.toast,.node{transition:none}
+  .loadbar i{animation:none;width:100%}
+}
+</style>
+<style>body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+
+
+<canvas id="fx"></canvas>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="wrap">
+  <div class="top"><span class="who"><img class="ava sm" id="ava-top" alt=""><span><b>Надежда Базарова</b> · маркетолог</span></span><span class="xp" id="xp">0 XP</span></div>
+  <div class="map" id="map" aria-hidden="true"></div>
+  <main class="card" id="app"></main>
+</div>
+
+<script>
+const AVA = "data:image/jpeg;base64,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";
+document.getElementById("ava-top").src = AVA;
+const TG = "https://t.me/NadezhdaBazarova";
+const TG_NAME = "@NadezhdaBazarova";
+
+const Q = [
+  {q:"Сколько времени в неделю вы готовы тратить на то, чтобы привлекать клиентов онлайн: контент, подарки для подписчиков, чат-боты?",
+   o:[["Почти нисколько, я и так на пределе","D"],["3-5 часов, если будет понятный план","S"],["Сколько нужно - мне интересно вникать","L"]]},
+  {q:"Как у вас с нейросетями?",
+   o:[["Не понимаю и не хочу тратить на это силы","D"],["Уже пробую, но результат пока не тот","S"],["Пользуюсь и хочу разобраться глубже","L"]]},
+  {q:"Что для вас сейчас важнее всего?",
+   o:[["Чтобы продажи пошли как можно быстрее","D"],["Начать продавать и по ходу понять, как всё устроено","S"],["Научиться делать всё самостоятельно и не зависеть от подрядчиков","L"]]},
+  {q:"Как у вас с недорогим предложением за 500-2 000 ₽, с которого клиенты начинают знакомство с вами? Например, мини-курс, гайд или практикум.",
+   o:[["Его нет или оно продаётся слабо, а заниматься этим некогда","D"],["Есть само предложение или идея, но нужна помощь, чтобы оно начало продавать","S"],["Хочу научиться самостоятельно собирать такие предложения и продавать их","L"]]},
+  {q:"Какой бюджет на продвижение вы готовы выделить в ближайший месяц?",
+   o:[["Вложусь, чтобы сделали за меня","D"],["Средний, хочу получить максимум пользы","S"],["Небольшой, лучше вложусь в знания","L"]]},
+  {q:"Когда вы делаете что-то новое сами, то обычно...",
+   o:[["Откладываю, пока не загорится","D"],["Делаю, если кто-то рядом проверяет","S"],["Довожу до конца без напоминаний","L"]]},
+  {q:"Каким вы хотите видеть своё дело через месяц?",
+   o:[["Заявки приходят сами, а я занимаюсь любимым делом","D"],["Первые продажи пошли, и рядом есть человек, к которому можно прийти с вопросом","S"],["Умею самостоятельно делать продающие посты и прогревы и могу запустить любую свою идею","L"]]}
+];
+
+const R = {
+  D:{axis:"Делегировать", arch:"Стратег", badge:"С",
+     tagline:"Вы генерал, а не солдат",
+     text:"Ваша сила в экспертизе, а не в настройке чат-ботов и оформлении гайдов. Отдайте это тому, кто сделает быстро и с пониманием маркетинга, а своё время оставьте клиентам.",
+     plan:"что отдать на аутсорс в первую очередь, чтобы заявки пошли быстрее",
+     moreTitle:"Если захотите, чтобы я сделала всё за вас:",
+     list:[["Бесплатный подарок для подписчиков (гайд или чек-лист), который приводит заявки","от 4 000 ₽"],["Чат-бот в Telegram или ВК, который знакомит людей с вами и ведёт к вашему предложению","от 15 000 ₽"],["Всё вместе под ключ: подарок + чат-бот + продающие посты на 5 дней","от 25 000 ₽"]],
+     word:"СТРАТЕГ"},
+  S:{axis:"С проводником", arch:"Исследователь", badge:"И",
+     tagline:"Вы идёте сами, но с картой и проводником",
+     text:"Вы готовы делать сами, но вам важно, чтобы рядом был человек, который подскажет и проверит. Так и продажи запустите, и навык останется с вами.",
+     plan:"какие шаги сделать самостоятельно и где вам понадобится поддержка",
+     course:{title:"Если захотите научиться со мной, с поддержкой:",
+       name:"Интенсив «Первые продажи за 5 дней» с обратной связью",
+       text:"5 дней в записи, плюс я лично проверяю ваши задания и даю комментарии. Соберёте с нейросетями недорогое предложение (мини-курс, гайд или практикум) и цепочку сообщений, которая ведёт к покупке.",
+       price:"1 990 ₽", old:"2 990 ₽", word:"ИНТЕНСИВ ПЛЮС"},
+     word:"ИССЛЕДОВАТЕЛЬ"},
+  L:{axis:"Научиться самостоятельно", arch:"Мастер", badge:"М",
+     tagline:"Вы любите понимать, как всё устроено",
+     text:"Вам интересно разобраться, и вы доводите дело до конца. Вложение в навык окупится много раз: вы сможете самостоятельно запускать новые предложения, когда захотите.",
+     plan:"чему научиться в первую очередь, чтобы запустить продажи самостоятельно",
+     course:{title:"Если захотите научиться со мной:",
+       name:"Интенсив «Первые продажи за 5 дней»",
+       text:"В записи, проходите в своём темпе, доступ остаётся у вас. Соберёте с нейросетями недорогое предложение (мини-курс, гайд или практикум) и цепочку сообщений, которая ведёт к покупке.",
+       price:"990 ₽", old:"1 499 ₽", word:"ИНТЕНСИВ"},
+     word:"МАСТЕР"}
+};
+
+
+const NICHES = [
+  ["Косметолог, уходовая косметика","«Правильно ли вы ухаживаете за своей кожей?»","Результат - ошибки в уходе и подборка средств, кнопка «записаться» или «заказать набор»"],
+  ["Сетевой бизнес","«Какой набор подходит именно вам?»","Подбор продукции под человека и заказ по вашей ссылке"],
+  ["Психолог, коуч","«Что мешает вам отдыхать без чувства вины?»","Разбор состояния и запись на консультацию"],
+  ["Нутрициолог, фитнес","«Какой у вас тип питания?»","Персональные рекомендации и приглашение в марафон"],
+  ["Финансы","«Какие у вас отношения с деньгами?»","Тип отношения к деньгам и приглашение на разбор"],
+  ["Стилист","«Какой образ раскрывает именно вас?»","Ваш стиль и запись на разбор гардероба"],
+  ["Преподаватель, репетитор","«Какой у вас уровень английского?»","Уровень, план занятий и пробный урок"],
+  ["Блогер","«Какой вы персонаж сериала?»","Весёлый результат, который хочется переслать, и подписка на ваш канал"]
+];
+function showcaseHTML(id){
+  return `
+  <div class="showcase" id="${id}" hidden>
+    <p>Игру можно сделать почти для любого дела, где есть клиенты или подписчики. Вот несколько идей:</p>
+    <div class="niches">${NICHES.map(n=>`<div class="niche"><span class="who-n">${n[0]}</span><span class="game">${n[1]}</span><span class="lead-to">${n[2]}</span></div>`).join("")}</div>
+    <p>Что даёт игра:</p>
+    <div class="gives"><span>вовлекает подписчиков</span><span>приводит заявки</span><span>подбирает человеку ваш продукт</span><span>работает сама 24/7</span><span>её хочется переслать подругам</span></div>
+    <p>Не нашли свою сферу? Напишите мне, и я предложу идею игры именно для вас.</p>
+    <a class="btn brass" href="${TG}?text=${encodeURIComponent("ИГРА")}" target="_blank" rel="noopener">Хочу свою игру - написать слово ИГРА</a>
+  </div>`;
+}
+function bindToggle(btnId, panelId, openText, closeText){
+  const b = document.getElementById(btnId), p = document.getElementById(panelId);
+  b.onclick = () => { p.hidden = !p.hidden; b.innerHTML = p.hidden ? openText : closeText; b.setAttribute("aria-expanded", String(!p.hidden)); };
+}
+
+const app = document.getElementById("app");
+const mapEl = document.getElementById("map");
+const xpEl = document.getElementById("xp");
+const toastEl = document.getElementById("toast");
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let step = -1, answers = [], xp = 0, shownXp = 0, chestOpen = false, order = [];
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function drawMap(){
+  let h = "";
+  for (let i = 0; i < Q.length; i++){
+    const cls = i < step ? "done" : i === step ? "now" : "";
+    h += `<div class="node ${cls}">${i+1}</div><div class="link ${i < step ? "done" : ""}"></div>`;
+  }
+  h += `<div class="node chest ${chestOpen ? "open" : ""}">★</div>`;
+  mapEl.innerHTML = h;
+}
+
+function addXp(n){
+  xp += n;
+  if (reduce){ shownXp = xp; xpEl.textContent = xp + " XP"; return; }
+  const from = shownXp, to = xp, t0 = performance.now();
+  (function tick(t){
+    const k = Math.min(1, (t - t0) / 600);
+    shownXp = Math.round(from + (to - from) * k);
+    xpEl.textContent = shownXp + " XP";
+    if (k < 1) requestAnimationFrame(tick);
+  })(t0);
+}
+
+let toastTimer;
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove("show"), 1500);
+}
+
+function intro(){
+  step = -1; answers = []; xp = 0; shownXp = 0; chestOpen = false;
+  order = Q.map(q => shuffle(q.o.map((_,i)=>i)));
+  xpEl.textContent = "0 XP";
+  drawMap();
+  app.innerHTML = `
+  <div class="screen" style="display:flex;flex-direction:column;gap:20px">
+    <div class="host"><img class="ava" src="${AVA}" alt="Надежда Базарова"><div class="bubble">Привет! Я <b>Надежда</b>, маркетолог и ведущая этой игры. Помогу понять, как вам быстрее прийти к клиентам и продажам.</div></div>
+    <span class="eyebrow">Для психологов, коучей, наставников и экспертов, которые продают свои знания онлайн</span>
+    <h1>Как быстрее получить клиентов на свои <em>консультации и курсы?</em></h1>
+    <p class="lead">Чтобы клиенты приходили онлайн, нужны продающие посты, прогревы, подарок для подписчиков и понятный путь клиента от знакомства с вами до покупки. Всё это можно отдать специалисту, а можно научиться делать самостоятельно с помощью нейросетей.</p>
+    <p class="lead">Ответьте на 7 вопросов, узнайте свой тип и получите пошаговый план, как быстрее прийти к продажам.</p>
+    <div class="rules">
+      <div class="rule"><b>7</b><span>вопросов-уровней</span></div>
+      <div class="rule"><b>1 мин</b><span>на всю игру</span></div>
+      <div class="rule"><b>★</b><span>план и диагностика в подарок</span></div>
+    </div>
+    <button class="btn" id="start">Начать игру</button>
+    <button class="introlink" id="intro-more" aria-expanded="false">Вы эксперт, блогер или ведёте свой бизнес? <b>Такую игру можно сделать и для вас →</b></button>
+    ${showcaseHTML("intro-show")}
+  </div>`;
+  document.getElementById("start").onclick = () => { step = 0; question(); };
+  bindToggle("intro-more","intro-show","Вы эксперт, блогер или ведёте свой бизнес? <b>Такую игру можно сделать и для вас →</b>","Скрыть примеры <b>↑</b>");
+}
+
+function question(){
+  drawMap();
+  const item = Q[step];
+  const keys = ["A","B","C"];
+  app.innerHTML = `
+  <div class="screen" style="display:flex;flex-direction:column;gap:20px">
+    <div class="qhead"><span class="lvl">Уровень ${step+1} из ${Q.length}</span></div>
+    <h2>${item.q}</h2>
+    <div class="opts">${order[step].map((oi,i)=>{const o=item.o[oi];return `<button class="opt${answers[step]===o[1]?' picked':''}" data-v="${o[1]}" id="opt-${step}-${oi}"><span class="key">${keys[i]}</span><span>${o[0]}</span></button>`}).join("")}</div>
+    ${step>0?'<button class="backbtn" id="back">← Вернуться к прошлому вопросу</button>':''}
+  </div>`;
+  const btns = app.querySelectorAll(".opt");
+  btns.forEach(b => b.onclick = () => {
+    btns.forEach(x => { x.disabled = true; x.classList.remove("picked"); });
+    b.classList.add("picked");
+    const first = answers[step] === undefined;
+    answers[step] = b.dataset.v;
+    if (first){
+      addXp(100);
+      if (step === 0) toast("Достижение: первый шаг · +100 XP");
+      else if (step === 3) toast("Полпути пройдено · +100 XP");
+      else if (step === Q.length - 1) toast("Все уровни пройдены · +100 XP");
+      else toast("+100 XP");
+    }
+    setTimeout(() => { step++; step < Q.length ? question() : loading(); }, reduce ? 200 : 750);
+  });
+  const back = document.getElementById("back");
+  if (back) back.onclick = () => { step--; question(); };
+}
+
+function loading(){
+  drawMap();
+  app.innerHTML = `
+  <div class="screen load">
+    <div class="spin">★</div>
+    <h2>Открываем сундук</h2>
+    <p class="small">Собираем ваш профиль по 7 ответам</p>
+    <div class="loadbar"><i></i></div>
+  </div>`;
+  setTimeout(result, reduce ? 300 : 1700);
+}
+
+function winner(){
+  const c = {D:0,S:0,L:0};
+  answers.forEach(a => c[a]++);
+  let w = "S";
+  if (c.D > c.S && c.D >= c.L) w = "D";
+  else if (c.L > c.S && c.L > c.D) w = "L";
+  return {w, c};
+}
+
+function result(){
+  chestOpen = true; drawMap();
+  addXp(300);
+  const {w, c} = winner();
+  const r = R[w];
+  const stats = ["D","S","L"].map(k => {
+    const p = Math.round(c[k] / Q.length * 100);
+    return `<div class="stat${k===w?' win':''}"><span>${R[k].axis}</span><div class="bar"><i data-w="${p}"></i></div><span>${p}%</span></div>`;
+  }).join("");
+  const offer = r.course ? `
+      <h3>${r.course.title}</h3>
+      <p><b style="font-weight:600">${r.course.name}</b>. ${r.course.text}</p>
+      <div class="price"><strong>${r.course.price}</strong><s>${r.course.old}</s><span class="chip">цена предзаписи</span></div>
+      <p class="small">Кодовое слово для интенсива: <b>${r.course.word}</b></p>
+      <a class="btn ghostbtn" id="tg2" href="${TG}?text=${encodeURIComponent(r.course.word)}" target="_blank" rel="noopener">Записаться: отправить слово ${r.course.word}</a>`
+    : `<h3>${r.moreTitle}</h3><ul>${r.list.map(l=>`<li><span style="color:var(--cream);white-space:normal;font-weight:400;flex:1;min-width:0">${l[0]}</span>${l[1]?`<span>${l[1]}</span>`:''}</li>`).join("")}</ul>`;
+
+  app.innerHTML = `
+  <div class="screen" style="display:flex;flex-direction:column;gap:22px">
+    <span class="eyebrow">Ваш тип · +300 XP за прохождение</span>
+    <div class="flip" id="flip">
+      <div class="flip-in">
+        <div class="face back-face">?</div>
+        <div class="face front-face">
+          <div class="arch-row">
+            <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+              <h1>${r.arch}</h1>
+              <p class="small">${r.tagline}</p>
+            </div>
+            <div class="badge">${r.badge}</div>
+          </div>
+          <p>${r.text}</p>
+          <div class="stats">${stats}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="reward">
+      <span class="eyebrow">Награда открыта</span>
+      <h2>Ваш пошаговый план и бесплатная диагностика</h2>
+      <p class="small">Что будет, когда вы напишете мне кодовое слово:</p>
+      <ol class="how">
+        <li>Задам 3 коротких вопроса о вашем деле</li>
+        <li>Бесплатно за 15 минут разберу, что у вас уже есть и где теряются клиенты</li>
+        <li>Пришлю пошаговый план для типа «${r.arch}»: ${r.plan}</li>
+      </ol>
+      <div class="steps">
+        <div class="stepline"><span class="num">1</span><span>Скопируйте кодовое слово для плана и диагностики</span></div>
+        <div class="code">
+          <span class="code-word" id="word">${r.word}</span>
+          <button class="copy" id="copy">Скопировать</button>
+        </div>
+        <div class="stepline"><span class="num">2</span><span>Нажмите кнопку и отправьте это слово мне в Telegram</span></div>
+      </div>
+      <div class="host"><img class="ava" src="${AVA}" alt="Надежда Базарова"><div class="bubble">Жду ваше слово <b>${r.word}</b>. Отвечаю лично, это не бот.</div></div>
+      <a class="btn" id="tg" href="${TG}?text=${encodeURIComponent(r.word)}" target="_blank" rel="noopener">Забрать план и диагностику</a>
+      <p class="small">Или найдите меня вручную: <b>${TG_NAME}</b></p>
+      <div class="more">${offer}</div>
+    </div>
+
+    <div class="gamecta">
+      <span class="eyebrow">Для экспертов, блогеров и своего бизнеса</span>
+      <h2>Хотите такую же игру для своих клиентов?</h2>
+      <p>Эту игру сделала я. Соберу похожую для вас: с вашими вопросами, фото, цветами и предложением в конце.</p>
+      <button class="btn brass" id="res-more" aria-expanded="false">Посмотреть, какие игры можно сделать ↓</button>
+      ${showcaseHTML("res-show")}
+    </div>
+
+    <button class="ghost" id="again">Пройти ещё раз</button>
+  </div>`;
+
+  requestAnimationFrame(() => setTimeout(() => {
+    document.getElementById("flip").classList.add("on");
+    app.querySelectorAll(".stat .bar i").forEach(i => i.style.width = i.dataset.w + "%");
+    confetti();
+  }, reduce ? 0 : 250));
+
+  const cp = document.getElementById("copy");
+  cp.onclick = () => {
+    const sel = () => {
+      const rng = document.createRange(); rng.selectNodeContents(document.getElementById("word"));
+      const s = getSelection(); s.removeAllRanges(); s.addRange(rng);
+      cp.textContent = "Выделено";
+    };
+    try { navigator.clipboard.writeText(r.word).then(() => cp.textContent = "Скопировано", sel); }
+    catch(e){ sel(); }
+  };
+  document.getElementById("tg").addEventListener("click", () => { try { navigator.clipboard.writeText(r.word).catch(()=>{}); } catch(e){} });
+  const tg2 = document.getElementById("tg2");
+  if (tg2) tg2.addEventListener("click", () => { try { navigator.clipboard.writeText(r.course.word).catch(()=>{}); } catch(e){} });
+  bindToggle("res-more","res-show","Посмотреть, какие игры можно сделать ↓","Скрыть примеры ↑");
+  document.getElementById("again").onclick = intro;
+  window.scrollTo({top:0, behavior: reduce ? "auto" : "smooth"});
+}
+
+function confetti(){
+  if (reduce) return;
+  const cv = document.getElementById("fx"), ctx = cv.getContext("2d");
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
+  ctx.scale(dpr, dpr);
+  const colors = ["#d8ad5b","#bb3d60","#78c79c","#f4ede0"];
+  const parts = Array.from({length:110}, () => ({
+    x: innerWidth/2 + (Math.random()-.5)*80, y: innerHeight*.35,
+    vx:(Math.random()-.5)*11, vy:-Math.random()*11-4,
+    s:Math.random()*7+4, r:Math.random()*6, vr:(Math.random()-.5)*.3,
+    c:colors[Math.floor(Math.random()*colors.length)]
+  }));
+  const t0 = performance.now();
+  (function frame(t){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p => {
+      p.vy += .32; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2); ctx.restore();
+    });
+    if (t - t0 < 2600) requestAnimationFrame(frame);
+    else ctx.clearRect(0,0,innerWidth,innerHeight);
+  })(t0);
+}
+
+intro();
+</script>
+
+</body>
+</html>
