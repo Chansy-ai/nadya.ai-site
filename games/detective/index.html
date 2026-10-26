@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Кто украл заявки</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600;700&family=Neucha&display=swap">
+<style>
+:root{
+  --bg:#f3ede2;
+  --card:#fffdf8;
+  --line:#ddd3c2;
+  --ink:#1f2a25;
+  --soft:#6b6a62;
+  --green:#123a2c;
+  --green-2:#1d5a44;
+  --wine:#8f2442;
+  --wine-soft:#f6e3e8;
+  --gold:#d8ad5b;
+  --gold-soft:#fbf1dc;
+  --ok:#2f7a52;
+  --ok-soft:#e3f2e9;
+  --display:"Unbounded","Arial Black",Arial,sans-serif;
+  --body:"Golos Text","Segoe UI",Roboto,Arial,sans-serif;
+  --hand:"Neucha","Comic Sans MS","Segoe Print",cursive;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  background:radial-gradient(rgba(18,58,44,.07) 1.2px,transparent 1.3px) 0 0/20px 20px,var(--bg);
+  padding:0 0 40px}
+.top{background:var(--green);color:#f3ede2;padding:12px 16px;position:sticky;top:0;z-index:5}
+.top-in{max-width:560px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px}
+.top b{font-weight:600}
+.case{font:500 12px var(--display);color:var(--green);background:var(--gold);padding:6px 10px;border-radius:999px;white-space:nowrap}
+.case.bump{animation:bump .5s ease}
+@keyframes bump{40%{transform:scale(1.15)}}
+.wrap{max-width:560px;margin:0 auto;padding:18px 16px 0}
+.panel{display:flex;flex-direction:column;gap:16px;animation:in .3s ease both}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.caption{align-self:flex-start;font:500 11px var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--wine);background:var(--wine-soft);padding:6px 10px;border-radius:999px}
+h1,h2{font-family:var(--display);font-weight:500;margin:0;line-height:1.2;text-wrap:balance}
+h1{font-size:clamp(28px,7.5vw,38px)}
+h1 em{font-style:normal;color:var(--wine)}
+h2{font-size:clamp(19px,5vw,22px)}
+p{margin:0}
+.lead{font-size:17px}
+.muted{color:var(--soft);font-size:14.5px}
+
+.say{display:flex;gap:10px;align-items:flex-start}
+.say.right{flex-direction:row-reverse}
+.face{flex:none;width:48px;height:48px;border-radius:50%;border:2px solid var(--ink);background:#fff;display:grid;place-items:center;overflow:hidden}
+.face img{width:100%;height:100%;object-fit:cover;object-position:center 20%}
+.face svg{width:32px;height:32px}
+.bubble{background:#fff;border:1.5px solid var(--line);border-radius:4px 16px 16px 16px;padding:9px 13px;font:16px/1.45 var(--body);box-shadow:0 2px 0 var(--line)}
+.say.right .bubble{border-radius:16px 4px 16px 16px;background:var(--gold-soft)}
+.story{background:var(--green);color:#f3ede2;border-radius:16px;padding:14px 16px;font-size:16px}
+.story b{color:var(--gold)}
+.ava.flower{background:#f6e3e8;display:grid;place-items:center;font-size:30px}
+.fb ul{margin:6px 0 0;padding-left:18px}
+#askbox{scroll-margin-top:70px}
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px;color:#e9efe9;font-size:15px}
+.steps b{color:var(--gold)}
+.cta .btn.line.light{color:#f3ede2;border-color:#9fb8ac;font-weight:500;background:rgba(255,255,255,.06);word-break:break-all}
+.bubble small{display:block;font:600 11px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--wine);margin-bottom:1px}
+
+/* buttons */
+.choices{display:flex;flex-direction:column;gap:10px}
+.ch{appearance:none;cursor:pointer;text-align:left;font:500 16px/1.35 var(--body);color:var(--ink);background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:15px 16px;box-shadow:0 3px 0 var(--line);transition:transform .1s,border-color .15s}
+.ch:hover{border-color:var(--wine)}
+.ch:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+.ch.primary{background:var(--wine);border-color:var(--wine);color:#fff;box-shadow:0 3px 0 #5e1229;text-align:center;font-weight:600}
+.ch.ghost{background:transparent;box-shadow:none;text-align:center;color:var(--soft)}
+:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+
+/* map */
+.map{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.loc{appearance:none;cursor:pointer;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 3px 0 var(--line);display:flex;flex-direction:column;gap:6px;font:500 15px/1.3 var(--body);color:var(--ink);min-height:118px;position:relative}
+.loc:hover{border-color:var(--wine)}
+.loc .ic{font-size:28px;line-height:1}
+.loc small{color:var(--soft);font-size:13px;font-weight:400}
+.loc.done{background:var(--ok-soft);border-color:#b8dcc6}
+.loc.done::after{content:"✓ улика";position:absolute;top:10px;right:10px;font:600 11px var(--body);color:var(--ok);background:#fff;border-radius:999px;padding:3px 8px}
+.progress{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--soft)}
+.dots{display:flex;gap:6px}
+.dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--ink);background:transparent}
+.dots i.on{background:var(--gold)}
+
+/* phone mockups */
+.phone{background:#fff;border:1.5px solid var(--line);border-radius:22px;padding:14px;box-shadow:0 6px 0 var(--line);font-size:14px}
+.ph-top{display:flex;gap:12px;align-items:center}
+.ava{width:62px;height:62px;border-radius:50%;flex:none;background:linear-gradient(135deg,#f0c9a6,#c98f6b);border:2.5px solid #fff;outline:2px solid #e3a1b4}
+.stats{display:flex;gap:14px;font-size:12.5px;color:var(--soft)}
+.stats b{display:block;color:var(--ink);font-size:15px}
+.uname{font-weight:700;font-size:14.5px;margin-top:10px}
+.bio{margin-top:2px;line-height:1.4}
+.link{color:#2a5db0;margin-top:2px}
+.hl{display:flex;gap:12px;margin-top:12px}
+.hl span{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11.5px;color:var(--soft)}
+.hl span i{width:46px;height:46px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-style:normal;font-size:20px;background:#faf6ee}
+.post{border:1.5px solid var(--line);border-radius:14px;padding:11px 13px;background:#fff;font-size:14.5px}
+.post b{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);margin-bottom:2px;font-weight:600}
+.post .meta{display:block;margin-top:6px;font-size:12.5px;color:var(--soft)}
+.posts{display:flex;flex-direction:column;gap:8px}
+.chat{background:#e7efe9;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:7px;font-size:14px}
+.chat .m{background:#fff;border-radius:4px 14px 14px 14px;padding:8px 11px;max-width:92%}
+.chat .m.me{align-self:flex-end;background:#dff3d8;border-radius:14px 4px 14px 14px}
+.chat ol{margin:4px 0 0;padding-left:20px;columns:2;column-gap:16px;font-size:13px}
+.chat .bt{display:inline-block;margin-top:6px;background:var(--wine);color:#fff;border-radius:8px;padding:6px 12px;font-weight:600;font-size:13px}
+
+/* hotspots */
+[data-spot]{cursor:pointer;border-radius:10px;outline:2px dashed transparent;outline-offset:3px;transition:outline-color .2s,background .2s}
+.hunt [data-spot]{outline-color:rgba(143,36,66,.28);animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{50%{outline-color:rgba(143,36,66,.6)}}
+[data-spot].fine{outline:2px solid #9fd0b2;animation:none;background:var(--ok-soft)}
+[data-spot].caught{outline:3px solid var(--wine);animation:none;background:var(--wine-soft)}
+.hint{font-size:14px;color:var(--soft);display:flex;gap:6px;align-items:center}
+.fb{border-radius:12px;padding:11px 14px;font-size:15px;animation:in .25s ease both}
+.fb b{display:block;font:500 11px var(--display);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
+.fb.good{background:var(--ok-soft);color:#1d4d33}
+.fb.good b{color:var(--ok)}
+.fb.bad{background:var(--wine-soft);color:#5a1427}
+.fb.bad b{color:var(--wine)}
+.fb.clue{background:var(--green);color:#f3ede2}
+.fb.clue b{color:var(--gold)}
+
+/* compare */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:440px){.vs{grid-template-columns:1fr}}
+.opt{appearance:none;cursor:pointer;text-align:left;background:#fff;border:2px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px;font:inherit;color:inherit;box-shadow:0 3px 0 var(--line)}
+.opt:hover{border-color:var(--wine)}
+.opt .lab{font:600 11px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:#e2b7c3;opacity:.7}
+.opt[disabled]{cursor:default}
+.mini{font-size:14px;line-height:1.4}
+
+.tip{background:var(--gold-soft);border:1.5px solid #ecd9ae;border-radius:14px;padding:12px 14px;font-size:15px}
+.tip b{display:block;font:500 11px var(--display);letter-spacing:.06em;text-transform:uppercase;color:#9a6b12;margin-bottom:3px}
+
+.stamp{align-self:flex-start;font:700 14px var(--display);letter-spacing:.06em;text-transform:uppercase;padding:7px 13px;border:3px solid currentColor;border-radius:8px;transform:rotate(-3deg)}
+.stamp.bad{color:var(--wine)}
+.stamp.good{color:var(--ok)}
+.path{display:flex;flex-direction:column;gap:6px}
+.path span{background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:8px 12px;font-weight:500;font-size:15px}
+.path i{font-style:normal;color:var(--wine);font-weight:700;padding-left:14px;line-height:1}
+.badge{display:flex;gap:14px;align-items:center;background:var(--green);color:#f3ede2;border-radius:18px;padding:14px 16px}
+.badge-ic{font-size:40px;line-height:1}
+.badge small{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+.badge b{display:block;font:500 18px var(--display)}
+.badge span{font-size:13px;color:#b9c9bf}
+
+.qprog{display:flex;gap:6px}
+.qprog i{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.qprog i.on{background:var(--gold)}.qprog i.now{background:var(--wine)}
+.found,.get{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+
+.cta{background:var(--green);color:#f3ede2;border-radius:20px;padding:20px 18px;display:flex;flex-direction:column;gap:12px}
+.cta h2{color:#fff}
+.cta p,.cta li{color:#d9e3dc;font-size:15px}
+.cta .bubble{color:var(--ink)}
+.cta.alt{background:var(--card);color:var(--ink);border:1.5px dashed var(--soft)}
+.cta.alt h2{color:var(--ink);font-size:18px}
+.cta.alt p{color:var(--soft)}
+.btn{display:block;text-align:center;text-decoration:none;cursor:pointer;font:600 16px/1.25 var(--body);padding:14px 16px;border-radius:12px;border:0;background:var(--gold);color:var(--green)}
+.btn:hover{filter:brightness(1.05)}
+.btn.wine{background:var(--wine);color:#fff}
+.btn.line{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.tiers{display:flex;flex-direction:column;gap:10px}
+.tier{background:rgba(255,255,255,.07);border:1.5px solid #3f6b58;border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.tier b{font:500 15px var(--display);color:#fff}
+.tier > span{font-size:14.5px;color:#d9e3dc}
+.tier em{font-style:normal;font-size:13.5px;color:#b9c9bf}
+.tier em b{font:600 13.5px var(--body);color:var(--gold)}
+.tier.gold{border-color:var(--gold);background:rgba(216,173,91,.12)}
+.tier small{font:600 10.5px var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:400px){.tiers{display:flex;flex-direction:column;gap:10px}
+.tier{background:rgba(255,255,255,.07);border:1.5px solid #3f6b58;border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.tier b{font:500 15px var(--display);color:#fff}
+.tier > span{font-size:14.5px;color:#d9e3dc}
+.tier em{font-style:normal;font-size:13.5px;color:#b9c9bf}
+.tier em b{font:600 13.5px var(--body);color:var(--gold)}
+.tier.gold{border-color:var(--gold);background:rgba(216,173,91,.12)}
+.tier small{font:600 10.5px var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+.btn-row{grid-template-columns:1fr}}
+.word{font:500 13px var(--display);color:var(--gold)}
+.cta.alt .word{color:var(--wine)}
+.niches{display:flex;flex-wrap:wrap;gap:6px}
+.niches span{background:var(--bg);border-radius:999px;padding:6px 11px;font-size:13.5px}
+
+.toast{position:fixed;z-index:20;top:62px;left:50%;width:min(92vw,400px);transform:translate(-50%,-200%);transition:transform .45s cubic-bezier(.2,1.2,.4,1);background:#fff;border:1.5px solid var(--line);border-radius:16px;box-shadow:0 8px 24px rgba(18,58,44,.18);padding:10px 12px;display:flex;gap:10px;align-items:center;font-size:15px}
+.toast.on{transform:translate(-50%,0)}
+.toast small{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--wine)}
+.toast .face{width:38px;height:38px}.toast .face svg{width:26px;height:26px}
+
+.foot{max-width:560px;margin:28px auto 0;padding:0 16px;font-size:13px;color:var(--soft);text-align:center;line-height:1.9}
+.foot a{color:var(--green-2)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="top"><div class="top-in"><span><b>Надежда Базарова</b> · маркетолог</span><span class="case" id="case">Дело №1</span></div></div>
+<div class="wrap"><main id="app"></main></div>
+<p class="foot">
+  <a href="https://t.me/NadezhdaBazarova" target="_blank" rel="noopener">Telegram</a> ·
+  <a href="https://www.instagram.com/nadezhda_chansy" target="_blank" rel="noopener">Instagram</a> ·
+  <a href="https://t.me/nadezhda_marketing" target="_blank" rel="noopener">канал про маркетинг</a><br>
+  <a href="https://nadezhda-test.netlify.app" target="_blank" rel="noopener" data-goal="click_game">Ещё одна игра: «Стратег, Исследователь или Мастер?»</a>
+</p>
+<script>
+/* ЯНДЕКС МЕТРИКА: впишите номер счётчика вместо 0 */
+const METRIKA_ID = 0;
+if (METRIKA_ID) {
+  (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})(window,document,"script","https://mc.yandex.ru/metrika/tag.js","ym");
+  ym(METRIKA_ID, "init", {clickmap:true, trackLinks:true, accurateTrackBounce:true});
+}
+function goal(name){ try { if (METRIKA_ID && window.ym) ym(METRIKA_ID, "reachGoal", name); } catch(e){} }
+document.addEventListener("click", e => { const a = e.target.closest("[data-goal]"); if (a) goal(a.dataset.goal); });
+const TG = "https://t.me/NadezhdaBazarova";
+const IG = "https://ig.me/m/nadezhda_chansy";
+const AVA = "data:image/jpeg;base64,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";
+
+const SVG = {
+  marina:`<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#e7c9a9" stroke="#1a1714" stroke-width="2"/><path d="M4 18c2-12 30-14 32 0-4-5-10-7-16-7S8 13 4 18z" fill="#5b3a2a" stroke="#1a1714" stroke-width="2"/><circle cx="14" cy="21" r="2" fill="#1a1714"/><circle cx="26" cy="21" r="2" fill="#1a1714"/><ellipse cx="20" cy="29" rx="4" ry="3" fill="#8f2442" stroke="#1a1714" stroke-width="1.5"/></svg>`
+};
+const face = k => k === "nadya" ? `<div class="face"><img src="${AVA}" alt="Надежда"></div>` : `<div class="face">${SVG[k]}</div>`;
+const say = (who, name, text, right) => `<div class="say${right ? " right" : ""}">${face(who)}<div class="bubble"><small>${name}</small>${text}</div></div>`;
+const nadya = t => say("nadya","Надежда",t);
+
+const app = document.getElementById("app");
+const caseEl = document.getElementById("case");
+const MAXS = 8;
+let clues = new Set(), score = 0, got = {};
+const ENDINGS = ["head","post","gift","bot","weak","win"];
+let found = new Set();
+try { JSON.parse(localStorage.getItem("detektiv-endings-2") || "[]").forEach(e => found.add(e)); } catch(e){}
+function saveEnd(id){ found.add(id); try { localStorage.setItem("detektiv-endings-2", JSON.stringify([...found])); } catch(e){} }
+
+function point(key){ if (got[key]) return; got[key] = 1; score++; caseEl.textContent = `Чутьё: ${score} из ${MAXS}`; caseEl.classList.remove("bump"); void caseEl.offsetWidth; caseEl.classList.add("bump"); }
+function render(html){ app.innerHTML = `<div class="panel">${html}</div>`; window.scrollTo({top:0}); }
+function btns(list){ return `<div class="choices">${list.map(b => `<button class="ch ${b[2] || ""}" id="${b[0]}">${b[1]}</button>`).join("")}</div>`; }
+function on(id, fn){ const el = document.getElementById(id); if (el) el.onclick = fn; }
+function toast(text){
+  const t = document.createElement("div"); t.className = "toast";
+  t.innerHTML = `${face("marina")}<div><small>Марина пишет</small>${text}</div>`;
+  document.body.appendChild(t);
+  requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add("on")));
+  setTimeout(() => { t.classList.remove("on"); setTimeout(() => t.remove(), 500); }, 4200);
+}
+
+/* ---------- данные мест ---------- */
+const PLACES = {
+  head:{my:"шапку", ic:"🪪", name:"Шапка профиля", sub:"первое, что видит человек",
+    suspect:"Шапка-загадка",
+    clue:"По шапке непонятно, кому Марина помогает и что можно взять бесплатно.",
+    tip:"Откройте свою шапку и засеките 3 секунды. Понятно ли за это время: кому вы помогаете, с чем и что можно забрать бесплатно?",
+    msg:"Детектив, а что не так с моей шапкой? Я её два часа придумывала 😅"},
+  post:{my:"посты", ic:"📝", name:"Лента постов", sub:"что Марина пишет каждый день",
+    suspect:"Скучный пост",
+    clue:"Посты милые, но ни один не зовёт сделать следующий шаг. Человек ставит лайк и уходит.",
+    tip:"Посмотрите на 5 своих последних постов. Сколько из них в конце приглашают куда-то: за подарком, в бот, на консультацию?",
+    msg:"Сегодня отписались ещё двое... Детектив, поторопитесь!"},
+  gift:{my:"подарок", ic:"🎁", name:"Подарок", sub:"бесплатный гайд Марины",
+    suspect:"Подарок-невидимка",
+    clue:"Подарок есть, но его никто не видит: о нём сказали один раз, в марте.",
+    tip:"Сколько раз за последний месяц вы рассказывали о своём подарке? Если меньше 4 - его почти никто не видел.",
+    msg:"Подарок нашёлся?! Я и сама забыла, где он лежит 🙈"},
+  bot:{my:"бот", ic:"🤖", name:"Чат-бот", sub:"куда попадает человек за подарком",
+    suspect:"Бот-витрина",
+    clue:"В конце бота список из 12 продуктов. Человек теряется и не выбирает ничего.",
+    tip:"Пройдите свой бот как новый человек. В конце есть одно понятное предложение - или список всего подряд?",
+    msg:"А я ведь так старалась над этим ботом... 😢"}
+};
+const ORDER = ["head","post","gift","bot"];
+
+/* ---------- старт ---------- */
+function intro(){
+  clues = new Set(); score = 0; got = {}; caseEl.textContent = "Дело №1";
+  render(`
+    <span class="caption">Дело №1 · 23:40</span>
+    <h1>Кто украл <em>заявки?</em></h1>
+    <div class="story">🕵️ <b>Представьте: вы детектив.</b> Поздно вечером к вам в офис звонит Марина, психолог. У неё беда.</div>
+    ${say("marina","Марина, психолог","Детектив, помогите! У меня 3 000 подписчиков, я каждый день пишу посты, есть подарок и чат-бот. А заявок - ноль!",true)}
+    ${nadya("Добрый вечер, детектив! Я Надежда, ваш напарник. Давайте поможем Марине: обыщем её страницу и найдём, кто ворует клиентов.")}
+    <p class="muted">4 места · 3 минуты · ищете улики сами, прямо на экране</p>
+    ${btns([["go","Взять дело","primary"]])}
+  `);
+  on("go", () => { goal("start"); hub(); });
+}
+
+function hub(){
+  const n = clues.size;
+  const hint = n === 0 ? "С чего начнём? Я бы начала с шапки - это первое, что видит человек."
+    : n < 4 ? `Улик: ${n} из 4. Чувствую, тут работал не один. Обыщем остальное?`
+    : "Все 4 места обысканы! Пора называть виновного.";
+  render(`
+    <span class="caption">Страница Марины · обыск</span>
+    ${nadya(hint)}
+    <div class="map">${ORDER.map(k => `<button class="loc${clues.has(k) ? " done" : ""}" id="loc-${k}"><span class="ic">${PLACES[k].ic}</span>${PLACES[k].name}<small>${PLACES[k].sub}</small></button>`).join("")}</div>
+    ${n ? btns([["accuse", n < 4 ? "Назвать виновного сейчас" : "Назвать виновного", n < 4 ? "" : "primary"]]) : ""}
+  `);
+  ORDER.forEach(k => on("loc-" + k, () => { goal("loc_" + k); SCENES[k](); }));
+  on("accuse", accuse);
+}
+
+/* ---------- механика 1: найди на экране ---------- */
+// spots: {key:{bad:bool, t:"название", note:"..."}}; allNote - если есть, показываем кнопку «Тут всё мешает»
+function hunt(k, intro, mock, spots, allNote){
+  const bads = Object.keys(spots).filter(x => spots[x].bad);
+  render(`
+    <span class="caption">${PLACES[k].ic} ${PLACES[k].name}</span>
+    ${intro}
+    <div class="hunt" id="mock">${mock}</div>
+    <p class="hint">👆 Нажмите на то, что кажется подозрительным${bads.length > 1 ? ` · подозреваемых тут ${bads.length}` : ""}</p>
+    <div id="fb"></div>
+    ${allNote ? btns([["all","🙈 Да тут всё мешает!"]]) : ""}
+    <div id="fin"></div>
+  `);
+  let miss = 0, done = false; const caught = new Set();
+  const fb = h => document.getElementById("fb").innerHTML = h;
+  const finish = () => {
+    done = true; if (!miss) point(k + "-find");
+    const a = document.getElementById("all"); if (a) a.remove();
+    document.getElementById("fin").innerHTML = btns([["next","Дальше →","primary"]]);
+    on("next", () => COMPARE[k]());
+  };
+  document.querySelectorAll("[data-spot]").forEach(el => el.onclick = () => {
+    if (done) return;
+    const key = el.dataset.spot, sp = spots[key];
+    if (sp.bad) {
+      el.classList.add("caught"); caught.add(key);
+      const left = bads.length - caught.size;
+      fb(`<div class="fb clue"><b>Попался!${bads.length > 1 ? ` ${caught.size} из ${bads.length}` : ""}</b>${sp.note}${left ? `<br><br>Ищите дальше - тут прячется ещё ${left}.` : ""}</div>`);
+      if (!left) finish();
+    } else {
+      miss++; el.classList.add("fine");
+      fb(`<div class="fb good"><b>Тут всё в порядке</b>${sp.note}</div>`);
+    }
+  });
+  on("all", () => {
+    if (done) return;
+    bads.forEach(x => document.querySelector(`[data-spot="${x}"]`).classList.add("caught"));
+    fb(`<div class="fb clue"><b>Глаз-алмаз!</b>${allNote}<ul>${bads.map(x => `<li><b style="display:inline;font:inherit;color:var(--gold)">${spots[x].t}:</b> ${spots[x].note}</li>`).join("")}</ul></div>`);
+    finish();
+  });
+}
+
+/* ---------- механика 2: что лучше ---------- */
+function compare(k, q, a, b, right, why){
+  if (Math.random() < .5) { [a, b] = [b, a]; right = right === "a" ? "b" : "a"; }
+  render(`
+    <span class="caption">${PLACES[k].ic} ${PLACES[k].name} · как исправить</span>
+    <h2>${q}</h2>
+    <div class="vs">
+      <button class="opt" id="oa"><span class="lab">Вариант 1</span>${a}</button>
+      <button class="opt" id="ob"><span class="lab">Вариант 2</span>${b}</button>
+    </div>
+    <div id="fb"></div>
+  `);
+  const pick = v => {
+    const ok = v === right;
+    if (ok) point(k + "-fix");
+    document.getElementById("o" + right).classList.add("right");
+    document.getElementById("o" + (right === "a" ? "b" : "a")).classList.add("wrong");
+    document.querySelectorAll(".opt").forEach(o => o.disabled = true);
+    document.getElementById("fb").innerHTML = `<div class="fb ${ok ? "good" : "bad"}"><b>${ok ? "В точку" : "Не совсем"}</b>${why}</div>${btns([["next","Приколоть улику к делу →","primary"]])}`;
+    on("next", () => clue(k));
+  };
+  on("oa", () => pick("a")); on("ob", () => pick("b"));
+}
+
+function clue(k){
+  const first = !clues.has(k); clues.add(k);
+  const p = PLACES[k];
+  render(`
+    <span class="caption">Улика ${clues.size} из 4</span>
+    <div class="fb clue"><b>Улика: ${p.suspect}</b>${p.clue}</div>
+    <div class="tip"><b>Проверьте у себя</b>${p.tip}</div>
+    ${btns([["back","Вернуться к обыску","primary"],["ask",`Хочу, чтобы Надежда проверила мою страницу`]])}
+    <div id="askbox"></div>
+  `);
+  on("back", hub);
+  on("ask", () => {
+    document.getElementById("askbox").innerHTML = `<div class="cta">
+      ${nadya(`С радостью! Посмотрю ваш${p.my === "шапку" ? "у" : p.my === "посты" ? "и" : ""} ${p.my} и всю дорожку до покупки и подскажу, что исправить первым.`)}
+      ${offerSteps()}
+      <div class="btn-row"><a class="btn" href="${TG}" target="_blank" rel="noopener">Telegram</a><a class="btn wine" href="${IG}" target="_blank" rel="noopener">Директ</a></div>
+      <p class="muted" style="color:#b9c9bf">Или продолжите расследование - в конце будет проверка всей вашей страницы.</p>
+    </div>`;
+    document.getElementById("ask").remove(); bindOffer();
+    document.getElementById("askbox").scrollIntoView({behavior:"smooth", block:"start"});
+  });
+  if (first) setTimeout(() => toast(p.msg), 700);
+}
+
+/* ---------- сцены ---------- */
+const profile = (bio, link, extra = "", ava = '<div class="ava"></div>') => `
+  <div class="phone">
+    <div class="ph-top">${ava}
+      <div class="stats"><span><b>214</b>публикаций</span><span><b>3 012</b>подписчиков</span><span><b>180</b>подписок</span></div></div>
+    <div data-spot="name" class="uname">Марина Светлова</div>
+    ${bio}${link}${extra}
+  </div>`;
+
+const SCENES = {
+  head(){
+    hunt("head", nadya("Человек впервые зашёл к Марине. У него есть 3 секунды, чтобы понять: остаться или уйти. Что здесь мешает?"),
+      profile(`<div data-spot="bio" class="bio">Психолог 🌸 10 лет опыта 🌸<br>Жизнь - это путь, а не цель ✨<br>Всё будет хорошо 💫</div>`,
+              `<div data-spot="link" class="link">taplink.cc/marina777</div>`,
+              `<div class="hl" data-spot="hl"><span><i>🌴</i>Отпуск</span><span><i>🐈</i>Котик</span><span><i>🌅</i>Закаты</span></div>`,
+              `<div data-spot="ava" class="ava flower">🌸</div>`),
+      {name:{bad:true, t:"Имя", note:"Просто имя и фамилия. А можно сразу написать, кто вы: «Марина | психолог, тревога и сон». Так вас найдут в поиске, а описание освободится для главного."},
+       ava:{bad:true, t:"Аватарка", note:"Вместо лица - цветочек. Людям важно видеть, к кому они идут со своей проблемой."},
+       bio:{bad:true, t:"Описание", note:"Красиво, но пусто: непонятно, кому Марина помогает, с чем и что можно получить."},
+       link:{bad:true, t:"Ссылка", note:"taplink.cc/marina777 - что там и зачем нажимать? Никто не знает, поэтому никто и не нажимает."},
+       hl:{bad:true, t:"Актуальное", note:"Отпуск, котик, закаты. А где отзывы, услуги и подарок? Актуальное - это вторая витрина."}},
+      "Точно! Тут плохо всё, даже имя:");
+  },
+  post(){
+    hunt("post", nadya("Вот три последних поста Марины. Один из них - главный подозреваемый. После какого поста человек точно ничего не сделает?"),
+      `<div class="posts">
+        <div class="post" data-spot="p1"><b>Пятница</b>5 признаков, что вы живёте в тревоге. Проверьте себя!<span class="meta">♥ 61 · сохранили 14</span></div>
+        <div class="post" data-spot="p2"><b>Среда</b>История клиентки: как Аня перестала просыпаться в 4 утра 💛<span class="meta">♥ 47 · 💬 9</span></div>
+        <div class="post" data-spot="p3"><b>Понедельник</b>Доброе утро, мои хорошие ☕ Пусть день будет тёплым! И так каждый день.<span class="meta">♥ 54 · 💬 2</span></div>
+      </div>`,
+      {p1:{bad:false, note:"Полезный пост, его сохраняют. Ему бы только приглашение в конце - и было бы отлично."},
+       p2:{bad:false, note:"История клиентки - сильный пост, люди узнают себя. Это не вор."},
+       p3:{bad:true, note:"«Доброе утро» каждый день два года подряд. Мило, но человек ничего не узнаёт и никуда не идёт. Ставит лайк и листает дальше."}});
+  },
+  gift(){
+    flagsGift = {};
+    hunt("gift", nadya("Марина говорит, у неё есть бесплатный гайд «Как успокоить тревогу за 5 минут». Он точно есть, просто его придётся поискать. Найдите его, как искал бы обычный человек."),
+      `<div class="phone">
+        <div class="ph-top"><div class="ava"></div><div class="stats"><span><b>3 012</b>подписчиков</span></div></div>
+        <div class="uname">Марина Светлова</div>
+        <div class="bio" data-spot="bio">Психолог 🌸 10 лет опыта 🌸</div>
+        <div class="hl"><span data-spot="hl"><i>🌴</i>Отпуск</span><span data-spot="hl2"><i>💬</i>Отзывы</span><span data-spot="pin"><i>📌</i>Закреп</span></div>
+      </div>`,
+      {bio:{bad:false, note:"В шапке подарка нет. Ищем дальше."},
+       hl:{bad:false, note:"Тут только море и закаты. Подарка нет."},
+       hl2:{bad:false, note:"Отзывы есть, подарка нет."},
+       pin:{bad:true, note:"Вот он! Лежит в самом низу закрепа, под постом от 12 марта. О нём рассказали один раз - и забыли."}});
+  },
+  bot(){
+    hunt("bot", nadya("Вы забрали подарок и попали в бот Марины. Вам понравилось, хочется к ней на консультацию. Что мешает купить?"),
+      `<div class="chat">
+        <div class="m" data-spot="hi">Здравствуйте! Вот ваш гайд 🎁 Рада, что вы здесь!</div>
+        <div class="m" data-spot="list">А вот все мои продукты:<ol><li>Консультация</li><li>Курс «Я и Я»</li><li>Мини-курс</li><li>Марафон</li><li>Медитации</li><li>Клуб</li><li>Разбор</li><li>Курс «Я и Мы»</li><li>Интенсив</li><li>Чек-лист</li><li>Наставничество</li><li>Ретрит</li></ol>Выбирайте, что подходит!</div>
+      </div>`,
+      {hi:{bad:false, note:"Подарок пришёл сразу, приветствие тёплое. Всё правильно."},
+       list:{bad:true, note:"12 продуктов сразу. Чем «Я и Я» отличается от «Я и Мы»? Что выбрать новичку? Когда выбора слишком много, человек не выбирает ничего."}});
+  }
+};
+let flagsGift = {};
+
+const COMPARE = {
+  head:() => compare("head","Какая шапка сделает страницу Марины цепляющей?",
+    `<div class="mini">Психолог 🌸 10 лет опыта 🌸<br>Жизнь - это путь, а не цель ✨</div>`,
+    `<div class="mini">10 лет помогаю справиться с тревогой и снова спать спокойно 💛<br>🎁 Ваш первый шаг: как успокоиться за 5 минут - заберите гайд здесь 👇</div>`,
+    "b","Хорошая шапка за 3 секунды отвечает: кому вы помогаете, с чем и что можно взять бесплатно прямо сейчас."),
+  post:() => compare("post","Каким должен быть конец поста?",
+    `<div class="mini">...Вот такие 5 признаков тревоги. Хорошего вам дня! 🌸</div>`,
+    `<div class="mini">...Узнали себя? Заберите бесплатный гайд «Спокойствие за 5 минут» - ссылка в шапке 👆</div>`,
+    "b","Пост может быть любым, но в конце он должен приглашать сделать шаг. Иначе человек просто листает дальше."),
+  gift:() => compare("gift","Как сделать, чтобы подарок забирали?",
+    `<div class="mini">Рассказать о нём один раз, красиво и подробно. Кому надо - найдёт.</div>`,
+    `<div class="mini">Напоминать постоянно: ссылка в шапке, закреп, сторис, посты и рилсы 2-3 раза в неделю.</div>`,
+    "b","Подписчики не ищут ваш подарок - они листают ленту. Новые люди приходят каждый день, и каждому нужно о нём сказать."),
+  bot:() => compare("bot","Чем лучше закончить бот?",
+    `<div class="mini">Списком всех продуктов: пусть человек сам выберет, что ему нужно.</div>`,
+    `<div class="mini">Одним предложением: «Если тревога мешает спать - приходите на консультацию за 1 500 ₽. За час разберём, что будит вас по ночам, и вы уйдёте с планом, как снова засыпать спокойно» и кнопка «Записаться».</div>`,
+    "b","Человек только что взял гайд про тревогу. Значит, и предложение должно быть про тревогу. Одно, понятное, с результатом и кнопкой.")
+};
+
+/* ---------- финал ---------- */
+function accuse(){
+  render(`
+    <span class="caption">Очная ставка</span>
+    <h2>Кто украл заявки Марины?</h2>
+    ${nadya(clues.size < 4 ? `У нас ${clues.size} из 4 улик. Рискнём?` : "Все улики на руках. Ваш вердикт, детектив?")}
+    ${btns([
+      ["s-head","🪪 Шапка-загадка"],["s-post","📝 Скучный пост"],["s-gift","🎁 Подарок-невидимка"],["s-bot","🤖 Бот-витрина"],
+      ["s-all","👥 Это банда - они действовали вместе"],["s-back","← Ещё поискать","ghost"]])}
+  `);
+  ["head","post","gift","bot"].forEach(k => on("s-" + k, () => ending(k)));
+  on("s-all", () => ending(clues.size === 4 ? "win" : "weak"));
+  on("s-back", hub);
+}
+
+const END = {
+  head:{title:"Арестована Шапка-загадка", text:"Шапка стала понятной, люди остаются. Но посты никуда не зовут, а подарок по-прежнему спрятан. Заявок всё так же ноль.", lesson:"Понятная шапка - только первая ступенька."},
+  post:{title:"Арестован Скучный пост", text:"Посты стали яркими, лайков вдвое больше. А заявок... ноль. Сообщники на свободе.", lesson:"Пост должен вести дальше - за подарком."},
+  gift:{title:"Арестован Подарок-невидимка", text:"Подарок забирают каждый день! Люди попадают в бот... и теряются там среди 12 продуктов.", lesson:"После подарка нужен один понятный следующий шаг."},
+  bot:{title:"Арестован Бот-витрина", text:"Бот стал идеальным: одно предложение и кнопка. Только в него никто не заходит - о подарке ведь никто не знает.", lesson:"Даже идеальный бот не работает без людей."},
+  weak:{title:"Банда ушла", text:"Чутьё вас не подвело: действовал не один. Но улик не хватило, и банду отпустили.", lesson:"Сначала проверьте всю дорожку от шапки до покупки."},
+  win:{good:true, title:"Дело раскрыто! Это была банда", text:"Шапка-загадка не объясняла, зачем оставаться. Скучный пост никуда не звал. Подарок-невидимка прятался в закрепе. А Бот-витрина путал списком из 12 продуктов. Поодиночке безобидны - вместе уводили всех клиентов."}
+};
+function rank(){ return score >= 7 ? "Шерлок заявок" : score >= 4 ? "Старший инспектор" : "Стажёр сыска"; }
+
+function ending(id){
+  saveEnd(id); goal("end_" + id);
+  const e = END[id];
+  render(`
+    <span class="caption">Концовка ${ENDINGS.indexOf(id) + 1} из 6</span>
+    <span class="stamp ${e.good ? "good" : "bad"}">${e.good ? "Дело раскрыто" : "Не тот"}</span>
+    <h2>${e.title}</h2>
+    <p class="lead">${e.text}</p>
+    ${e.good ? `<p class="muted">Вот как должна работать страница:</p>
+      <div class="path"><span>🪪 Шапка объясняет, чем вы поможете</span><i>↓</i><span>📝 Пост зовёт за подарком</span><i>↓</i><span>🎁 Подарок видно и о нём напоминают</span><i>↓</i><span>🤖 Бот ведёт к одному предложению</span><i>↓</i><span>💌 Заявка</span></div>
+      ${say("marina","Марина, через месяц","Детектив, у меня 14 заявок! Что мне теперь с ними делать?!",true)}`
+      : `<div class="tip"><b>Вывод детектива</b>${e.lesson}</div>`}
+    <div class="badge"><div class="badge-ic">🕵️</div><div><small>Ваше звание</small><b>${rank()}</b><span>Чутьё ${score} из ${MAXS} · улик ${clues.size} из 4</span></div></div>
+    <div class="cta">
+      ${nadya("Это было дело Марины. А теперь - ваше. Есть ли такие воры на вашей странице? Проверим за 30 секунд.")}
+      <button class="btn" id="check">🔍 Проверить свою страницу</button>
+    </div>
+    <div class="tip"><b>Концовок найдено: ${found.size} из 6</b>Интересно, что было бы, если арестовать другого подозреваемого? Попробуйте - у каждого своя история.</div>
+    ${btns([["other","Посмотреть другие концовки →"],["restart","Начать дело заново","ghost"]])}
+  `);
+  on("check", () => { goal("check_start"); check(0, []); }); on("other", accuse); on("restart", intro);
+}
+
+function offerSteps(){
+  return `<div class="tiers">
+      <div class="tier"><b>Короткий разбор</b><span>2-3 главные улики на вашей странице - текстом</span><em>Условие: просто напишите мне слово <span class="word">РАЗБОР</span> и ссылку на страницу</em></div>
+      <div class="tier gold"><small>Бонус</small><b>Голосовой разбор на 5-7 минут</b><span>Пройду путь от шапки до покупки и расскажу, что исправить первым</span><em>Условие: выложите скрин игры в сторис, отметьте <b>@nadezhda_chansy</b>, добавьте ссылку на игру - и напишите <span class="word">РАЗБОР</span></em></div>
+    </div>
+    <button class="btn line light" data-copy>📋 Скопировать ссылку на игру</button>
+    <div class="btn-row"><a class="btn" href="${TG}" target="_blank" rel="noopener" data-goal="click_tg">Написать в Telegram</a><a class="btn wine" href="${IG}" target="_blank" rel="noopener" data-goal="click_ig">Написать в Директ</a></div>`;
+}
+function offerCta(line){
+  return `<div class="cta">
+      ${nadya(line)}
+      <h2>Разбор вашей страницы в подарок</h2>
+      ${offerSteps()}
+    </div>`;
+}
+function bindOffer(){
+  document.querySelectorAll("[data-copy]").forEach(b => b.onclick = async () => {
+    const url = location.href.split("#")[0];
+    goal("copy_link");
+    try { await navigator.clipboard.writeText(url); b.textContent = "✓ Ссылка скопирована"; }
+    catch(e){ b.textContent = url; }
+  });
+}
+
+
+/* ---------- проверка своей страницы ---------- */
+const CHECK = [
+  {q:"Глядя на вашу шапку, за 3 секунды понятно, кому вы помогаете и что можно взять бесплатно?", who:"🪪 Шапка-загадка"},
+  {q:"В конце ваших постов есть приглашение: забрать подарок, написать вам, записаться?", who:"📝 Скучный пост"},
+  {q:"Вы напоминаете о своём подарке хотя бы раз в неделю?", who:"🎁 Подарок-невидимка"},
+  {q:"После подарка человеку понятно, что купить у вас дальше? Одно предложение, а не список всего", who:"🤖 Бот-витрина"}
+];
+function check(i, ans){
+  if (i >= CHECK.length) return verdict(ans);
+  render(`
+    <span class="caption">Ваша страница · ${i + 1} из ${CHECK.length}</span>
+    <div class="qprog">${CHECK.map((_, j) => `<i class="${j < i ? "on" : j === i ? "now" : ""}"></i>`).join("")}</div>
+    <h2>${CHECK[i].q}</h2>
+    ${btns([["yes","👍 Да"],["no","👎 Нет"],["idk","🤷 Не знаю"]])}
+  `);
+  const next = v => check(i + 1, ans.concat(v));
+  on("yes", () => next("y")); on("no", () => next("n")); on("idk", () => next("?"));
+}
+function verdict(ans){
+  goal("verdict");
+  const bad = CHECK.filter((c, i) => ans[i] !== "y");
+  const n = bad.length;
+  render(`
+    <span class="caption">Ваша страница · результат</span>
+    ${n === 0
+      ? `<span class="stamp good">Чисто</span><h2>Похоже, у вас всё на месте</h2><p class="lead">Но если заявок всё равно мало, вор хорошо прячется. Взгляд со стороны найдёт его быстрее.</p>`
+      : `<span class="stamp bad">${n === 1 ? "1 подозреваемый" : n + " подозреваемых"}</span><h2>Кажется, у вас тоже крадут заявки</h2>
+         <ul class="found">${bad.map(c => `<li>${c.who}</li>`).join("")}</ul>`}
+    ${offerCta("Давайте я проведу такое расследование на вашей странице - по-настоящему. Выбирайте формат:")}
+    ${gameCta()}
+    ${btns([["restart","Сыграть ещё раз","ghost"]])}
+  `);
+  on("restart", intro); bindOffer();
+}
+
+function gameCta(){
+  return `<div class="cta alt">
+    <h2>Хотите такую игру на свою тему?</h2>
+    <p>Сделаю для ваших клиентов в любой нише:</p>
+    <div class="niches"><span>Косметолог: «Кто украл клиентов салона?»</span><span>Нутрициолог: «Кто съел результат?»</span><span>Стилист: «Кто испортил образ?»</span></div>
+    <p>Напишите мне кодовое слово <span class="word">ИГРА</span></p>
+    <div class="btn-row"><a class="btn line" href="${TG}" target="_blank" rel="noopener" data-goal="game_tg">Telegram</a><a class="btn line" href="${IG}" target="_blank" rel="noopener" data-goal="game_ig">Директ</a></div>
+  </div>`;
+}
+
+intro();
+</script>
+</body>
+</html>
